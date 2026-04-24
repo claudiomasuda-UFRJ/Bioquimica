@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Bioquímica II — Partes 1–6</title>
+<style>
+  :root {
+    --dark:   #065A82;
+    --teal:   #028090;
+    --mint:   #02C39A;
+    --bg:     #F0F4F8;
+    --white:  #FFFFFF;
+    --text:   #1B2A4A;
+    --red:    #C0392B;
+    --green:  #16A34A;
+    --yellow: #D97706;
+    --gray:   #64748B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    background: var(--dark);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+  #topbar .course { font-size: 14px; opacity: .75; }
+  #topbar .title  { font-size: 17px; font-weight: 700; }
+  #progress-wrap  { display: flex; align-items: center; gap: 12px; }
+  #q-counter      { font-size: 14px; font-weight: 600; opacity: .9; }
+  #prog-bar-outer { width: 180px; height: 6px; background: rgba(255,255,255,.25); border-radius: 3px; }
+  #prog-bar-inner { height: 6px; background: var(--mint); border-radius: 3px; transition: width .4s; width: 0; }
+
+  /* ── TIMER BAR ── */
+  #timer-wrap { height: 6px; background: #dde; flex-shrink: 0; }
+  #timer-bar  { height: 6px; background: var(--teal); width: 100%; transition: width 1s linear; }
+
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+  .screen.active { display: flex; }
+
+  /* COVER */
+  #cover {
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, var(--dark) 0%, var(--teal) 100%);
+    color: white;
+    text-align: center;
+    gap: 20px;
+    padding: 40px;
+  }
+  #cover h1 { font-size: clamp(28px, 4vw, 52px); font-weight: 800; line-height: 1.1; }
+  #cover h2 { font-size: clamp(16px, 2.2vw, 26px); opacity: .8; font-weight: 400; }
+  #cover p  { font-size: 15px; opacity: .65; max-width: 520px; }
+  #cover .badge {
+    display: inline-block;
+    background: var(--mint);
+    color: var(--dark);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 18px;
+    border-radius: 20px;
+  }
+  #btn-start {
+    margin-top: 20px;
+    padding: 16px 48px;
+    font-size: 20px;
+    font-weight: 700;
+    background: white;
+    color: var(--dark);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  #btn-start:hover { transform: scale(1.04); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
+
+  /* SETTINGS panel inside cover */
+  #settings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    opacity: .85;
+  }
+  #settings label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  #settings select, #settings input[type=number] {
+    border: none; border-radius: 6px; padding: 4px 8px;
+    font-size: 14px; background: rgba(255,255,255,.2); color: white;
+  }
+  #settings select option { color: var(--text); }
+
+  /* QUESTION screen */
+  #question-screen {
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+  #q-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 5vw 12px;
+    gap: 16px;
+    overflow: hidden;
+  }
+  #q-meta { display: flex; align-items: center; gap: 10px; }
+  #q-topic {
+    background: var(--teal);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  #timer-label { font-size: 13px; color: var(--gray); margin-left: auto; }
+  #timer-count { font-weight: 700; font-size: 18px; color: var(--teal); }
+
+  #q-text {
+    font-size: clamp(18px, 2.6vw, 30px);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--dark);
+    flex-shrink: 0;
+  }
+
+  #options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+  .opt {
+    background: white;
+    border: 2.5px solid #CBD5E1;
+    border-radius: 12px;
+    padding: 14px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    font-size: clamp(14px, 1.6vw, 18px);
+    line-height: 1.4;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .opt:hover:not(.disabled) { border-color: var(--teal); background: #EBF8FF; transform: translateY(-1px); }
+  .opt .letter {
+    font-weight: 800;
+    font-size: 1.2em;
+    color: var(--teal);
+    flex-shrink: 0;
+    min-width: 22px;
+  }
+  .opt.correct  { border-color: var(--green); background: #DCFCE7; }
+  .opt.correct .letter { color: var(--green); }
+  .opt.wrong    { border-color: var(--red);   background: #FEE2E2; opacity: .75; }
+  .opt.wrong .letter { color: var(--red); }
+  .opt.disabled { cursor: default; }
+
+  /* EXPLANATION */
+  #explanation {
+    display: none;
+    background: var(--dark);
+    color: white;
+    padding: 14px 5vw;
+    font-size: clamp(13px, 1.5vw, 17px);
+    line-height: 1.5;
+    flex-shrink: 0;
+    animation: slideup .3s ease;
+  }
+  @keyframes slideup { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  #explanation strong { color: var(--mint); }
+
+  /* BOTTOM CONTROLS */
+  #controls {
+    background: white;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 5vw;
+    flex-shrink: 0;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  #controls .hint { font-size: 12px; color: var(--gray); }
+  #controls .hint kbd {
+    background: #F1F5F9;
+    border: 1px solid #CBD5E1;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: monospace;
+  }
+  .btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: transform .1s, opacity .15s;
+  }
+  .btn:disabled { opacity: .35; cursor: default; }
+  .btn:not(:disabled):hover { transform: scale(1.03); }
+  .btn-secondary { background: #E2E8F0; color: var(--text); }
+  .btn-primary   { background: var(--teal); color: white; }
+  .btn-reveal    { background: var(--yellow); color: white; }
+
+  #btn-reveal { display: none; }
+  #btn-next   { display: none; }
+
+  /* END screen */
+  #end-screen {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 24px;
+    padding: 40px;
+    background: linear-gradient(145deg, var(--dark) 0%, var(--teal) 100%);
+    color: white;
+  }
+  #end-screen h1 { font-size: clamp(28px, 4vw, 52px); font-weight: 800; }
+  #end-screen p  { font-size: clamp(15px, 2vw, 22px); opacity: .8; }
+  #score-box {
+    background: rgba(255,255,255,.15);
+    border-radius: 16px;
+    padding: 24px 48px;
+    font-size: clamp(18px, 2.5vw, 28px);
+    font-weight: 700;
+  }
+  #score-box .big { font-size: clamp(36px,5vw,72px); color: var(--mint); }
+  #btn-restart {
+    padding: 14px 42px;
+    font-size: 18px;
+    font-weight: 700;
+    background: white;
+    color: var(--dark);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  #btn-restart:hover { transform: scale(1.04); }
+
+  /* PAUSE overlay */
+  #pause-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(6,90,130,.92);
+    color: white;
+    font-size: 36px;
+    font-weight: 800;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 100;
+    cursor: pointer;
+  }
+  #pause-overlay.show { display: flex; }
+  #pause-overlay p { font-size: 16px; opacity: .7; font-weight: 400; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div>
+    <div class="course">Bioquímica II — Farmácia UFRJ 2026-1</div>
+    <div class="title">Quiz de Revisão — Partes 1 a 6</div>
+  </div>
+  <div id="progress-wrap">
+    <span id="q-counter"></span>
+    <div id="prog-bar-outer"><div id="prog-bar-inner"></div></div>
+  </div>
+</div>
+
+<!-- TIMER BAR -->
+<div id="timer-wrap"><div id="timer-bar"></div></div>
+
+<!-- COVER -->
+<div id="cover" class="screen active">
+  <span class="badge">Prof. Claudio Masuda</span>
+  <h1>Quiz de Revisão<br>Bioquímica II</h1>
+  <h2>Partes 1 a 6 · 30 questões</h2>
+  <div id="settings">
+    <label>⏱ Tempo por questão:
+      <input type="number" id="cfg-time" value="30" min="0" max="300" style="width:60px"> s
+    </label>
+    <label>🔀 Ordem aleatória:
+      <input type="checkbox" id="cfg-shuffle">
+    </label>
+    <label>📋 Modo:
+      <select id="cfg-mode">
+        <option value="class">Turma (revelar ao clicar)</option>
+        <option value="auto">Auto-reveal (resposta imediata)</option>
+      </select>
+    </label>
+  </div>
+  <button id="btn-start">▶  Iniciar Quiz</button>
+  <p>Controles: <strong>Espaço / →</strong> avançar · <strong>R</strong> revelar resposta · <strong>P</strong> pausar · <strong>F</strong> tela cheia</p>
+</div>
+
+<!-- QUESTION -->
+<div id="question-screen" class="screen">
+  <div id="q-body">
+    <div id="q-meta">
+      <span id="q-topic"></span>
+      <span id="timer-label">⏱ <span id="timer-count">30</span>s</span>
+    </div>
+    <div id="q-text"></div>
+    <div id="options"></div>
+  </div>
+  <div id="explanation"><strong>💡 Comentário:</strong> <span id="exp-text"></span></div>
+  <div id="controls">
+    <div class="hint">
+      <kbd>Space</kbd>/<kbd>→</kbd> próxima &nbsp;
+      <kbd>R</kbd> revelar &nbsp;
+      <kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd> selecionar &nbsp;
+      <kbd>P</kbd> pausar &nbsp;
+      <kbd>F</kbd> fullscreen
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="btn-back">◀ Anterior</button>
+      <button class="btn btn-reveal"    id="btn-reveal">🔍 Revelar Resposta</button>
+      <button class="btn btn-primary"   id="btn-next">Próxima ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- END -->
+<div id="end-screen" class="screen">
+  <h1>🎉 Quiz Concluído!</h1>
+  <p>Parabéns pela participação. Revisão das Partes 1–6 completa.</p>
+  <div id="score-box">
+    <div class="big" id="end-score">—</div>
+    <div id="end-detail"></div>
+  </div>
+  <button id="btn-restart">↩ Recomeçar</button>
+</div>
+
+<!-- PAUSE -->
+<div id="pause-overlay" onclick="togglePause()">
+  ⏸ PAUSADO
+  <p>Clique ou pressione P para continuar</p>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const QUESTIONS = [
+  { topic:"P1-Fontes", q:"Qual das moléculas abaixo NÃO é uma fonte de energia significativa para o organismo humano?", alts:["Glicose","Ácidos graxos","Aminoácidos","Celulose"], correct:3, exp:"Humanos não possuem celulase; a celulose passa pelo trato digestivo como fibra, sem gerar energia." },
+  { topic:"P1-Fontes", q:"O ATP é considerado a 'moeda energética' da célula porque:", alts:["É a molécula mais abundante na célula","Sua hidrólise libera energia aproveitável para processos celulares","É sintetizado em todas as células do corpo","Armazena energia por longos períodos"], correct:1, exp:"ATP é sintetizado e consumido rapidamente; sua função é fornecer energia 'sob demanda', não armazenar." },
+  { topic:"P1-Fontes", q:"Quais tecidos são classicamente considerados consumidores obrigatórios de glicose em jejum de curta duração?", alts:["Músculo esquelético em exercício e fígado","Cérebro, eritrócitos e medula renal","Tecido adiposo branco e pele","Coração e músculo liso vascular"], correct:1, exp:"Cérebro consome ~120 g de glicose/dia; eritrócitos (sem mitocôndria) e medula renal (baixa pO₂) dependem exclusivamente da glicólise." },
+  { topic:"P1-Fontes", q:"A principal reserva de energia a longo prazo no corpo humano é:", alts:["Glicogênio hepático","Glicogênio muscular","Triacilgliceróis no tecido adiposo","Aminoácidos musculares"], correct:2, exp:"Tecido adiposo armazena ~100.000 kcal; glicogênio total ~1.800 kcal (só 1–2 dias de jejum)." },
+  { topic:"P1-Fontes", q:"Em jejum prolongado, qual combustível torna-se predominante para o cérebro?", alts:["Glicose exclusivamente","Ácidos graxos livres","Corpos cetônicos","Lactato"], correct:2, exp:"Após ~3 dias, o cérebro adapta-se a usar β-hidroxibutirato e acetoacetato, poupando glicose." },
+
+  { topic:"P2-Bioenerg.", q:"Uma reação é considerada espontânea (exergônica) quando:", alts:["ΔG > 0","ΔG < 0","ΔG = 0","ΔG° = 0"], correct:1, exp:"Espontaneidade depende do ΔG real (não do padrão); ΔG negativo = libera energia utilizável." },
+  { topic:"P2-Bioenerg.", q:"A relação entre a constante de equilíbrio (Keq) de uma reação e o ΔG°' é dada por:", alts:["ΔG°' = −RT ln Keq","ΔG°' = +RT ln Keq","ΔG°' = −R/T × Keq","ΔG°' = Keq − RT"], correct:0, exp:"Relação termodinâmica fundamental: se Keq > 1, ln Keq > 0 e ΔG°' < 0 (reação espontânea no sentido direto em condições padrão)." },
+  { topic:"P2-Bioenerg.", q:"O acoplamento energético permite que reações endergônicas ocorram quando:", alts:["A temperatura é aumentada","Uma enzima catalisa a reação","São acopladas a reações exergônicas, geralmente hidrólise de ATP","O pH é ajustado para 7,0"], correct:2, exp:"Enzimas aceleram reações mas não mudam espontaneidade. Acoplamento com ATP é a solução termodinâmica." },
+  { topic:"P2-Bioenerg.", q:"A energia livre de hidrólise do ATP em ADP + Pᵢ, em condições padrão bioquímicas, é aproximadamente:", alts:["−7,3 kcal/mol","−3,5 kcal/mol","−14,6 kcal/mol","+7,3 kcal/mol"], correct:0, exp:"Valor padrão de −7,3 kcal/mol (−30,5 kJ/mol). In vivo, chega a −12 kcal/mol pela razão [ATP]/[ADP][Pᵢ]." },
+  { topic:"P2-Bioenerg.", q:"A fosfocreatina (creatina-fosfato) no músculo esquelético tem como função principal:", alts:["Atuar como substrato da glicólise anaeróbica","Servir como reservatório imediato de fosfato de alta energia, regenerando ATP via creatina cinase nos primeiros segundos de contração","Inibir alostericamente a PFK-1 em repouso","Transportar elétrons até a ATP sintase"], correct:1, exp:"ΔG°' de hidrólise da fosfocreatina (~−10,3 kcal/mol) é mais negativo que o do ATP, permitindo transferir fosfato ao ADP. Sustenta ATP por ~5–10 s de exercício intenso." },
+
+  { topic:"P3-OXPHOS", q:"A cadeia transportadora de elétrons está localizada em qual estrutura celular?", alts:["Matriz mitocondrial","Membrana mitocondrial externa","Membrana mitocondrial interna","Espaço intermembrana"], correct:2, exp:"Complexos I–IV e ATP sintase estão embebidos na membrana interna, que é impermeável a H⁺." },
+  { topic:"P3-OXPHOS", q:"O cianeto inibe a cadeia respiratória ao bloquear:", alts:["Complexo I (NADH desidrogenase)","Complexo II (succinato DH)","Complexo III (citocromo bc₁)","Complexo IV (citocromo c oxidase)"], correct:3, exp:"CN⁻ liga-se ao Fe³⁺ da citocromo c oxidase, parando totalmente o transporte; morte rápida por asfixia celular." },
+  { topic:"P3-OXPHOS", q:"Desacopladores como o 2,4-dinitrofenol (DNP) e a proteína UCP1 (termogenina) do tecido adiposo marrom atuam:", alts:["Bloqueando o Complexo IV e interrompendo o consumo de O₂","Inibindo a ATP sintase no componente F₁","Dissipando o gradiente de prótons através da membrana interna sem síntese de ATP, liberando a energia como calor","Aumentando o rendimento de ATP por NADH oxidado"], correct:2, exp:"Sem acoplamento, a cadeia respiratória continua (consumindo O₂) mas a energia é dissipada como calor. UCP1 é fisiológica (termogênese); DNP foi usado como emagrecedor com toxicidade grave (hipertermia fatal)." },
+  { topic:"P3-OXPHOS", q:"O gradiente de prótons usado pela ATP sintase é gerado por:", alts:["Difusão passiva de H⁺ através da membrana","Bombeamento ativo de H⁺ pelos complexos I, III e IV durante o transporte de elétrons","Hidrólise de ATP no citosol","Transporte de Na⁺/K⁺ mitocondrial"], correct:1, exp:"Energia dos elétrons (de NADH/FADH₂) é usada para bombear H⁺ contra seu gradiente: teoria quimiosmótica de Mitchell." },
+  { topic:"P3-OXPHOS", q:"A oligomicina inibe a síntese de ATP ao bloquear:", alts:["Complexo I","Complexo IV","ATP sintase (componente F₀)","Translocase ADP/ATP"], correct:2, exp:"Oligomicina bloqueia o canal de prótons F₀ da ATP sintase, impedindo síntese de ATP." },
+
+  { topic:"P4-Krebs", q:"O ciclo de Krebs ocorre em qual compartimento celular?", alts:["Citosol","Matriz mitocondrial","Membrana mitocondrial interna","Núcleo"], correct:1, exp:"Todas as enzimas são solúveis na matriz, EXCETO succinato desidrogenase (Complexo II), que está na membrana interna." },
+  { topic:"P4-Krebs", q:"A cada volta do ciclo de Krebs, são produzidos diretamente:", alts:["1 ATP, 3 NADH, 1 FADH₂, 2 CO₂","1 GTP, 3 NADH, 1 FADH₂, 2 CO₂","2 GTP, 2 NADH, 2 FADH₂, 2 CO₂","1 GTP, 4 NADH, 1 FADH₂, 3 CO₂"], correct:1, exp:"GTP (não ATP) é produzido pela succinil-CoA sintetase; 3 NADH; 1 FADH₂; 2 CO₂." },
+  { topic:"P4-Krebs", q:"A enzima regulada alostericamente por inibição por ATP, NADH e succinil-CoA no ciclo de Krebs é:", alts:["Citrato sintase","Isocitrato desidrogenase","α-cetoglutarato desidrogenase","Malato desidrogenase"], correct:2, exp:"α-cetoglutarato DH é o principal ponto de regulação; analogia com PDH (ambas são DH de α-cetoacidos)." },
+  { topic:"P4-Krebs", q:"A reação anaplerótica mais importante para reabastecer o ciclo de Krebs é catalisada por:", alts:["Piruvato carboxilase (piruvato → OAA)","Piruvato desidrogenase","Malato desidrogenase","Succinato desidrogenase"], correct:0, exp:"Piruvato carboxilase (ativada por acetil-CoA) repõe OAA quando este é desviado para gliconeogênese ou biossíntese." },
+  { topic:"P4-Krebs", q:"Qual substrato entra no ciclo de Krebs condensando-se com oxaloacetato para formar citrato?", alts:["Piruvato","Lactato","Acetil-CoA","Malato"], correct:2, exp:"A citrato sintase catalisa a condensação aldólica entre acetil-CoA e OAA, formando citrato." },
+
+  { topic:"P5-Glicólise", q:"A glicólise ocorre em qual compartimento celular?", alts:["Matriz mitocondrial","Citosol","Retículo endoplasmático","Membrana plasmática"], correct:1, exp:"Todas as 10 enzimas da glicólise são citosólicas, o que permite sua ocorrência em anaerobiose." },
+  { topic:"P5-Glicólise", q:"Qual é o rendimento líquido de ATP na glicólise por molécula de glicose?", alts:["2 ATP","4 ATP","6 ATP","32 ATP"], correct:0, exp:"Gasta 2 ATP (fase preparatória) e produz 4 ATP (fase de pagamento); líquido = 2 ATP." },
+  { topic:"P5-Glicólise", q:"A principal enzima regulatória da glicólise, ponto de controle mais importante, é:", alts:["Hexocinase","Fosfofrutocinase-1 (PFK-1)","Piruvato cinase","Gliceraldeído-3-P desidrogenase"], correct:1, exp:"PFK-1 é o passo comprometido; sua atividade é regulada por AMP, ATP, citrato e F2,6BP (regulador mestre)." },
+  { topic:"P5-Glicólise", q:"Em condições anaeróbicas, o destino do piruvato em células musculares é:", alts:["Oxidação a acetil-CoA","Conversão a lactato (via LDH)","Conversão a alanina","Descarboxilação oxidativa"], correct:1, exp:"LDH regenera NAD⁺ reduzindo piruvato a lactato, permitindo glicólise continuar em hipóxia (ciclo de Cori)." },
+  { topic:"P5-Glicólise", q:"Qual efetor alostérico ATIVA a PFK-1 em condições de baixa energia celular?", alts:["ATP","Citrato","AMP","Frutose-6-P"], correct:2, exp:"AMP acumula quando ATP é consumido; sinaliza 'falta de energia' e acelera glicólise via PFK-1." },
+
+  { topic:"P6-PPP", q:"A via das pentoses-fosfato tem como principais produtos:", alts:["ATP e piruvato","NADPH e ribose-5-fosfato","NADH e FADH₂","Lactato e CO₂"], correct:1, exp:"NADPH: biossíntese redutora e defesa antioxidante. Ribose-5-P: síntese de nucleotídeos e ácidos nucleicos." },
+  { topic:"P6-PPP", q:"A enzima-chave da fase oxidativa da PPP, cujo defeito genético é o mais comum em humanos (>400 milhões), é:", alts:["Transcetolase","Transaldolase","Glicose-6-fosfato desidrogenase (G6PD)","6-fosfogluconolactonase"], correct:2, exp:"G6PD é a primeira enzima da PPP; seu defeito reduz NADPH e compromete a defesa antioxidante." },
+  { topic:"P6-PPP", q:"A deficiência de G6PD causa principalmente:", alts:["Diabetes mellitus tipo 2","Anemia hemolítica desencadeada por oxidantes (primaquina, sulfa, favas)","Doença de Von Gierke","Galactosemia"], correct:1, exp:"Sem NADPH suficiente, glutationa reduzida cai, eritrócitos lisam frente a estresse oxidativo (favismo)." },
+  { topic:"P6-PPP", q:"Em qual tecido a PPP é especialmente ativa devido à necessidade de NADPH para biossíntese redutora?", alts:["Músculo esquelético","Tecido adiposo, fígado e glândula mamária em lactação","Eritrócitos","Cérebro"], correct:1, exp:"Lipogênese (síntese de ácidos graxos e colesterol) exige muito NADPH; por isso PPP é ativa nesses tecidos." },
+  { topic:"P6-PPP", q:"A fase não-oxidativa da PPP, catalisada por transcetolase (TPP) e transaldolase, tem como função principal:", alts:["Gerar NADPH adicional a partir de ribose-5-P","Degradar ribose-5-P até CO₂ e H₂O","Interconverter açúcares de 3 a 7 carbonos, ajustando o balanço NADPH/ribose-5-P e reconectando a via à glicólise (via F6P e GAP)","Fosforilar ribose-5-P para produzir ATP"], correct:2, exp:"Fase reversível e flexível: quando a célula precisa mais NADPH que ribose, converte pentoses de volta a F6P/GAP. Deficiência de tiamina (B1) compromete a transcetolase (síndrome de Wernicke-Korsakoff)." },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let queue = [];
+let idx = 0;
+let revealed = false;
+let timerSec = 30;
+let timerRemain = 30;
+let timerInterval = null;
+let paused = false;
+let correct = 0;
+let answered = 0;
+let mode = 'class';
+let answered_this = false;
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setTopbar(n, total) {
+  document.getElementById('q-counter').textContent = `${n} / ${total}`;
+  const pct = ((n - 1) / total * 100);
+  document.getElementById('prog-bar-inner').style.width = pct + '%';
+}
+
+// ─────────────────────────────────────────────
+// TIMER
+// ─────────────────────────────────────────────
+function startTimer() {
+  stopTimer();
+  if (timerSec <= 0) {
+    document.getElementById('timer-wrap').style.display = 'none';
+    document.getElementById('timer-label').style.display = 'none';
+    return;
+  }
+  timerRemain = timerSec;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    if (paused || revealed) return;
+    timerRemain--;
+    updateTimerUI();
+    if (timerRemain <= 0) { stopTimer(); autoReveal(); }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function updateTimerUI() {
+  document.getElementById('timer-count').textContent = timerRemain;
+  const pct = timerSec > 0 ? (timerRemain / timerSec * 100) : 100;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  if (pct < 25) bar.style.background = '#C0392B';
+  else if (pct < 55) bar.style.background = '#D97706';
+  else bar.style.background = 'var(--teal)';
+}
+
+function autoReveal() {
+  if (!revealed) revealAnswer();
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderQuestion() {
+  const q = queue[idx];
+  revealed = false;
+  answered_this = false;
+
+  document.getElementById('q-topic').textContent = q.topic;
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('explanation').style.display = 'none';
+  document.getElementById('exp-text').textContent = q.exp;
+
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  ['A','B','C','D'].forEach((ltr, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt';
+    div.dataset.idx = i;
+    div.innerHTML = `<span class="letter">${ltr}</span><span>${q.alts[i]}</span>`;
+    div.addEventListener('click', () => selectOption(i));
+    opts.appendChild(div);
+  });
+
+  document.getElementById('btn-reveal').style.display = (mode === 'class') ? 'inline-block' : 'none';
+  document.getElementById('btn-next').style.display = 'inline-block';
+  document.getElementById('btn-next').textContent = idx < queue.length - 1 ? 'Próxima ▶' : 'Finalizar ✓';
+
+  setTopbar(idx + 1, queue.length);
+  startTimer();
+
+  if (mode === 'auto') revealAnswer();
+}
+
+function selectOption(i) {
+  if (revealed) return;
+  answered_this = true;
+  if (i === queue[idx].correct) correct++;
+  answered++;
+  revealAnswer(i);
+}
+
+function revealAnswer(chosen) {
+  if (revealed) return;
+  revealed = true;
+  stopTimer();
+
+  const q = queue[idx];
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((o, i) => {
+    o.classList.add('disabled');
+    if (i === q.correct) o.classList.add('correct');
+    else if (chosen !== undefined && i === chosen) o.classList.add('wrong');
+  });
+  document.getElementById('explanation').style.display = 'block';
+  document.getElementById('btn-reveal').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────────
+function nextQ() {
+  if (!revealed) revealAnswer();
+  setTimeout(() => {
+    idx++;
+    if (idx >= queue.length) { showEnd(); return; }
+    renderQuestion();
+  }, revealed ? 0 : 500);
+}
+
+function prevQ() {
+  if (idx <= 0) return;
+  stopTimer();
+  idx--;
+  renderQuestion();
+}
+
+function showEnd() {
+  show('end-screen');
+  stopTimer();
+  document.getElementById('end-score').textContent = `${correct} / ${queue.length}`;
+  const pct = Math.round(correct / queue.length * 100);
+  document.getElementById('end-detail').textContent = `${pct}% de acertos · ${answered} questões respondidas`;
+  document.getElementById('prog-bar-inner').style.width = '100%';
+  document.getElementById('q-counter').textContent = `${queue.length} / ${queue.length}`;
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pause-overlay').classList.toggle('show', paused);
+}
+
+// ─────────────────────────────────────────────
+// START / RESTART
+// ─────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', () => {
+  timerSec = parseInt(document.getElementById('cfg-time').value) || 0;
+  const doShuffle = document.getElementById('cfg-shuffle').checked;
+  mode = document.getElementById('cfg-mode').value;
+  queue = doShuffle ? shuffle(QUESTIONS) : [...QUESTIONS];
+  idx = 0; correct = 0; answered = 0;
+  show('question-screen');
+  renderQuestion();
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+  show('cover');
+  stopTimer();
+});
+
+document.getElementById('btn-reveal').addEventListener('click', revealAnswer);
+document.getElementById('btn-next').addEventListener('click', nextQ);
+document.getElementById('btn-back').addEventListener('click', prevQ);
+
+// ─────────────────────────────────────────────
+// KEYBOARD
+// ─────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  const active = document.querySelector('.screen.active');
+  if (active.id === 'cover' && (e.key === 'Enter' || e.key === ' ')) {
+    document.getElementById('btn-start').click(); return;
+  }
+  if (active.id !== 'question-screen') return;
+  if (e.key === 'p' || e.key === 'P') { togglePause(); return; }
+  if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    else document.exitFullscreen();
+    return;
+  }
+  if (paused) return;
+  if (e.key === 'r' || e.key === 'R') { revealAnswer(); return; }
+  if ((e.key === ' ' || e.key === 'ArrowRight') && !e.ctrlKey) { e.preventDefault(); nextQ(); return; }
+  if (e.key === 'ArrowLeft') { prevQ(); return; }
+  if (e.key === 'a' || e.key === 'A') { selectOption(0); return; }
+  if (e.key === 'b' || e.key === 'B') { selectOption(1); return; }
+  if (e.key === 'c' || e.key === 'C') { selectOption(2); return; }
+  if (e.key === 'd' || e.key === 'D') { selectOption(3); return; }
+});
+</script>
+</body>
+</html>
