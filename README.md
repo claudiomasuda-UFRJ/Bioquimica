@@ -27,8 +27,7 @@ Parte 4	Ciclo de Krebs
 Parte 5	Glicólise
 Parte 6	Via das Pentoses-Fosfato e Gliconeogênese
 
-🔗 Abrir Quiz de Revisão (link disponível após publicação)
-
+🔗 Abrir Quiz de Revisão https://claudiomasuda-ufrj.github.io/Bioquimica/Quiz_Apresentador.html
 
 🔬 Identifique a Via
 Jogo em equipes para identificação de vias metabólicas a partir de pistas progressivas. O professor controla o ritmo — quanto menos pistas a equipe precisar, mais pontos ganha.
@@ -42,7 +41,7 @@ Recursos:
 
 📚 Conteúdo abordado
 Vias incluídas: Glicólise · Via das Pentoses-Fosfato · Ciclo de Krebs · Fosforilação Oxidativa · Gliconeogênese · Ciclo de Cori · Beta-oxidação · Sistema Fosfocreatina · Síntese de Glicogênio · Degradação de Glicogênio · Síntese de Ácidos Graxos · Cetogênese · Oxidação de Aminoácidos · Ciclo da Ureia
-🔗 Abrir Jogo — Identifique a Via (link disponível após publicação)
+🔗 Abrir Jogo — Identifique a Via https://claudiomasuda-ufrj.github.io/Bioquimica/Jogo_Identifique_a_Via.html
 
 
 ⚙️ Como usar
