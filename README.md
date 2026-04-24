@@ -48,7 +48,8 @@ Em sala de aula (professor):
 2.	Pressione F para entrar em tela cheia
 3.	Use Espaço ou → para avançar, R para revelar resposta, N para próxima rodada
 
-Para estudo individual (aluno): Abra qualquer link acima no celular ou computador. Nenhum cadastro necessário.
+Para estudo individual (aluno): 
+1. Abra qualquer link acima no celular ou computador. Nenhum cadastro necessário.
 ________________________________________
 📬 Contato
 Prof. Claudio Masuda – Instituto de Bioquímica Médica · UFRJ cmasuda@bioqmed.ufrj.br
