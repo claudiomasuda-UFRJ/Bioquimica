@@ -58,5 +58,6 @@ Para estudo individual (aluno):
 
 📬 Contato
 
-Prof. Claudio Masuda – Instituto de Bioquímica Médica · UFRJ cmasuda@bioqmed.ufrj.br
+Prof. Claudio Masuda – Instituto de Bioquímica Médica · UFRJ 
+cmasuda@bioqmed.ufrj.br
 
