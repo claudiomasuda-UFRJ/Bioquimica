@@ -1,13 +1,16 @@
 Ferramentas de Aprendizado — Bioquímica
 Universidade Federal do Rio de Janeiro (UFRJ) - Prof. Claudio Masuda · 2026
-________________________________________
+
+
 Este repositório reúne ferramentas interativas de revisão para as turmas de graduação da UFRJ. Os materiais foram criados para apoiar aulas de revisão, estimular o aprendizado ativo e facilitar o estudo autônomo dos alunos.
 Todas as ferramentas funcionam diretamente no navegador, sem instalação, sem cadastro e sem necessidade de conexão com a internet após o carregamento da página.
-________________________________________
+
+
 🗂️ Ferramentas disponíveis
 
 🎯 Quiz de Revisão — Partes 1 a 6
 Apresentador interativo com 30 questões de múltipla escolha cobrindo seis temas de Bioquímica. Projetado para uso em sala de aula pelo professor, mas também pode ser acessado individualmente pelos alunos para estudo.
+
 Recursos:
 •	Cronômetro configurável por questão
 •	Modo turma (professor revela a resposta) ou modo automático (resposta imediata)
@@ -25,7 +28,7 @@ Parte 5	Glicólise
 Parte 6	Via das Pentoses-Fosfato e Gliconeogênese
 
 🔗 Abrir Quiz de Revisão (link disponível após publicação)
-________________________________________
+
 
 🔬 Identifique a Via
 Jogo em equipes para identificação de vias metabólicas a partir de pistas progressivas. O professor controla o ritmo — quanto menos pistas a equipe precisar, mais pontos ganha.
@@ -40,7 +43,8 @@ Recursos:
 📚 Conteúdo abordado
 Vias incluídas: Glicólise · Via das Pentoses-Fosfato · Ciclo de Krebs · Fosforilação Oxidativa · Gliconeogênese · Ciclo de Cori · Beta-oxidação · Sistema Fosfocreatina · Síntese de Glicogênio · Degradação de Glicogênio · Síntese de Ácidos Graxos · Cetogênese · Oxidação de Aminoácidos · Ciclo da Ureia
 🔗 Abrir Jogo — Identifique a Via (link disponível após publicação)
-________________________________________
+
+
 ⚙️ Como usar
 
 Em sala de aula (professor):
@@ -50,7 +54,9 @@ Em sala de aula (professor):
 
 Para estudo individual (aluno): 
 1. Abra qualquer link acima no celular ou computador. Nenhum cadastro necessário.
-________________________________________
+
+
 📬 Contato
+
 Prof. Claudio Masuda – Instituto de Bioquímica Médica · UFRJ cmasuda@bioqmed.ufrj.br
 
